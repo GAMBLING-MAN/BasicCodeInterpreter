@@ -32,7 +32,7 @@ local ModuleLink = "https://www.roblox.com/library/12984141083/Basic-Code-Interp
 -- auto version check code; requires HTTP service
 -- change to 'true' to enable auto-version checking
 -- change to 'false' to disable autochecking completely
-local autocheckVersion = true
+local autocheckVersion = false
 
 if autocheckVersion then
 	local http = game:GetService("HttpService")
