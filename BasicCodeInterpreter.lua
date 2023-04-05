@@ -3,7 +3,7 @@
 -- It interprets code of a proprietary language
 --
 -- Find previous update notes here: https://gist.github.com/GAMBLING-MAN/9b532b330fc438edd91b196c7d3f82d4/revisions
--- Find a history of all module versions (starting at 0.1.1) here: 
+-- Find a history of all module versions (starting at 0.1.1) here: https://github.com/GAMBLING-MAN/BasicCodeInterpreter
 --
 -- Bugs? Suggestions? Contributions? Comments? Feel free to get in touch!
 -- @horrificpeeping on Twitter (while it, as a platform, lasts)
