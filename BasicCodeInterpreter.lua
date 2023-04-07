@@ -2,15 +2,14 @@
 -- This is Wast3Iand's basic code interpreter
 -- It interprets code of a proprietary language
 --
--- Find previous update notes here: https://gist.github.com/GAMBLING-MAN/9b532b330fc438edd91b196c7d3f82d4/revisions
--- Find a history of all module versions (starting at 0.1.1) here: https://github.com/GAMBLING-MAN/BasicCodeInterpreter
+-- Find previous update notes here: https://github.com/GAMBLING-MAN/BasicCodeInterpreter/blob/main/UpdateHistory.md
+-- Github page available here: https://github.com/GAMBLING-MAN/BasicCodeInterpreter
 --
--- Bugs? Suggestions? Contributions? Comments? Feel free to get in touch!
--- @horrificpeeping on Twitter (while it, as a platform, lasts)
+-- Bugs? Suggestions? Contributions? Comments? Head to the Github!
 
 -- basic TODO:
 -- An 'if' command
--- Differentiate between a 'debuglog' and 'log'
+-- Differentiate between a 'debuglog' and 'log' DONE
 -- A method of end-user input (e.g. a popup textbox or yes/no prompt, and some method to access these inputs without the built-in popups for whatever purpose you may want)
 -- Possibly loops of some kind, although a low priority.
 
@@ -20,13 +19,11 @@ local module = {}
 local defaultMaxVars = 100 -- integer
 local defaultLineDelay = 0 -- number, 0 = wait for minimum time between lines, a higher number means wait for that amount of seconds between lines, a negative number means do not wait between lines (may cause extremely long code to error due to long execution time)
 local defaultLogging = true -- boolean
+local defaultDebugLogging = false -- boolean
 
--- 0.0.1 version notes: initial release
--- 0.0.2 version notes: fixing my dumb mistakes, a lot of values now use local instead of module so that you can't accidentally use methods not intended for you
--- 0.1.0 version notes: added rem (removes a variable), added prt (prints the evaluation of all following inputs, can be used to print variables), fixed some bugs and mistakes
--- 0.1.1 version notes: added adjustable delay between executed lines; this required a rewrite of the entire system (and introduced some really stupid code), however it does fix bugs i hadn't considered before
+-- Version notes now on Github
 
-local VERSION = "0.1.1" -- Yes, this is intended to be a string
+local VERSION = "0.1.2" -- Yes, this is intended to be a string
 local ModuleLink = "https://www.roblox.com/library/12984141083/Basic-Code-Interpreter" -- this is printed first instead of blindly trusting the gist value
 
 -- auto version check code; requires HTTP service
@@ -68,6 +65,15 @@ if autocheckVersion then
 end
 
 ------
+
+parameters = {}
+parameters.__index = {
+	["maxVariables"] = math.round(defaultMaxVars),
+	["lineDelay"] = defaultLineDelay,
+	["log"] = defaultLogging,
+	["debugLog"] = defaultDebugLogging
+}
+
 
 local storage = {}
 
@@ -136,7 +142,7 @@ function internal.runLine(line: string, params)
 		local n = table.find(sects, "")
 		if n ~= nil then
 			table.remove(sects,n)
-			if params.log then
+			if params.debugLog then
 				print("removed a double space")
 			end
 		else
@@ -153,31 +159,9 @@ end
 
 --runs a given snippet of code
 function internal.runSnippet(snip: string, params)
-	if type(params["log"]) ~= "boolean" then
-		params.log = defaultLogging
-		if params.log then
-			print("defaulting to default logging boolean")
-		end
-	end
-
-	if type(params["maxVariables"]) ~= "number" then
-		params.maxVariables = defaultMaxVars
-		if params.log then
-			print("defaulting to default variable maximum")
-		end
-	end
-	params.maxVariables = math.round(params.maxVariables) -- just to be safe
-	
-	if type(params["lineDelay"]) ~= "number" then
-		params.lineDelay = defaultLineDelay
-		if params.log then
-			print("defaulting to default line delay")
-		end
-	end
-
 	if snip == nil then
 		local mes = "No code snippet provided!"
-		if params.log then
+		if params.log or params.debugLog then
 			warn(mes)
 		end
 		return false, mes
@@ -193,13 +177,17 @@ function internal.runSnippet(snip: string, params)
 
 		if not suc then
 			local mes = "Error on line "..tostring(i)
-			if params.log then
+			if params.log or params.debugLog then
 				warn(mes, err)			
 			end
 			store.Succeeded = false
 			store.Return = {mes, err}
 			store.Completed = true
 			return
+		end
+		
+		if params.debugLog then
+			print("Line "..tostring(i).." completed.")
 		end
 		
 		if params.lineDelay >= 0 then
@@ -399,25 +387,24 @@ function module.runSnippet(snip: string, params: Dictionary)
 	return tab.Succeeded, tab["Variables"] 
 end
 
-function module.createParams(maxVariables: number, lineDelay: number, enableLogging: boolean)
+function module.createParams(maxVariables: number, lineDelay: number, enableLogging: boolean, enableDebugLogging: boolean)
 	local params = {}
+	setmetatable(params, parameters)
 	
 	if type(maxVariables) == "number" then
 		params.maxVariables = math.round(maxVariables) -- just to be safe
-	else
-		params.maxVariables = defaultMaxVars
 	end
 	
 	if type(lineDelay) == "number" then
 		params.lineDelay = lineDelay
-	else
-		params.lineDelay = defaultLineDelay
 	end
 	
 	if type(enableLogging) == "boolean" then
 		params.log = enableLogging
-	else
-		params.log = defaultLogging
+	end
+	
+	if type(enableDebugLogging) == "boolean" then
+		params.debugLog = enableDebugLogging
 	end
 	
 	return params
