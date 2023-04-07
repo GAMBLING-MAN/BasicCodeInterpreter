@@ -10,11 +10,12 @@ local snippet2 = "set twelve+thirteen 12 + 13 \n prt twelve+thirteen \n prt |twe
 -- Above is an example snippet to showcase the currently available options
 -- The order of operations is NOT implemented, when doing multiple operations at once, operations are applied from left to right.
 
-local params1 = Interpreter.createParams(3, 0, false)
-local params2 = Interpreter.createParams(100, 0, false)
+local params1 = Interpreter.createParams(3, 0, true, false)
+local params2 = Interpreter.createParams(100, 0, true, false)
+local params3 = Interpreter.createParams()
 
 -- prints the results
 print(Interpreter.runSnippet(snippet1, params1)) -- this will error, it exceeds maximum variables
 print(Interpreter.runSnippet(snippet1, params2)) -- this will work, there are enough variables
 
-print(Interpreter.runSnippet(snippet2, params2))
+print(Interpreter.runSnippet(snippet2))
