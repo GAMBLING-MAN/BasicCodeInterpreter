@@ -20,10 +20,12 @@ local defaultMaxVars = 100 -- integer
 local defaultLineDelay = 0 -- number, 0 = wait for minimum time between lines, a higher number means wait for that amount of seconds between lines, a negative number means do not wait between lines (may cause extremely long code to error due to long execution time)
 local defaultLogging = true -- boolean
 local defaultDebugLogging = false -- boolean
+local defaultMaxVariableNameLength = 20 -- integer
+local defaultMaxVariableLength = 250 -- integer
 
 -- Version notes now on Github
 
-local VERSION = "0.1.2" -- Yes, this is intended to be a string
+local VERSION = "0.1.3" -- Yes, this is intended to be a string
 local ModuleLink = "https://www.roblox.com/library/12984141083/Basic-Code-Interpreter" -- this is printed first instead of blindly trusting the gist value
 
 -- auto version check code; requires HTTP service
@@ -71,7 +73,9 @@ parameters.__index = {
 	["maxVariables"] = math.round(defaultMaxVars),
 	["lineDelay"] = defaultLineDelay,
 	["log"] = defaultLogging,
-	["debugLog"] = defaultDebugLogging
+	["debugLog"] = defaultDebugLogging,
+	["maxVariableName"] = math.round(defaultMaxVariableNameLength),
+	["maxVariableSize"] = math.round(defaultMaxVariableLength)
 }
 
 
@@ -135,6 +139,18 @@ function internal.dictLength(dictionary)
 	return i
 end
 
+function internal.complete(store, succeeded, ret)
+	if type(store) == "table" then
+		if type(succeeded) == "boolean" then
+			store.Succeeded = succeeded
+		end
+		if ret ~= nil then
+			store.Return = ret
+		end
+		store.Completed = true
+	end
+end
+
 function internal.runLine(line: string, params)
 	local sects = string.split(line," ")
 
@@ -180,9 +196,8 @@ function internal.runSnippet(snip: string, params)
 			if params.log or params.debugLog then
 				warn(mes, err)			
 			end
-			store.Succeeded = false
-			store.Return = {mes, err}
-			store.Completed = true
+			
+			internal.complete(store, false, {mes, err})
 			return
 		end
 		
@@ -195,8 +210,7 @@ function internal.runSnippet(snip: string, params)
 		end
 	end
 	
-	store.Succeeded = true
-	store.Completed = true
+	internal.complete(store, true)
 end
 
 ----
@@ -305,6 +319,8 @@ function commands.set(sects, n, params)
 		return false, "Cannot set to a numerical variable: "..sects[2]
 	elseif table.find(forbidden,sects[2]) ~= nil then
 		return false, "Cannot set to a forbidden word or symbol: "..sects[2]
+	elseif string.len(sects[2]) > params.maxVariableName then
+		return false, "Cannot set to a variable name longer than the max"
 	else -- if we're good to go
 		local store = storage[params.storageKey]
 		
@@ -314,8 +330,12 @@ function commands.set(sects, n, params)
 		local suc, err = operation.evaluate(send, params)
 		if suc then
 			if internal.dictLength(store.Variables) < params.maxVariables or store.Variables[sects[2]] ~= nil then -- if there is space for a new variable OR we're overwriting an old one
-				store.Variables[sects[2]] = err[1]
-				return true --, variables[sects[2]]
+				if string.len(tostring(err[1])) > params.maxVariableSize then
+					return false, "Attempted to write a variable over the max size"
+				else
+					store.Variables[sects[2]] = err[1]
+					return true --, variables[sects[2]]
+				end
 			else -- if neither of the above, error
 				return false, "Attempt to write to a variable exceeded the max number of variables."
 			end
@@ -387,7 +407,7 @@ function module.runSnippet(snip: string, params: Dictionary)
 	return tab.Succeeded, tab["Variables"] 
 end
 
-function module.createParams(maxVariables: number, lineDelay: number, enableLogging: boolean, enableDebugLogging: boolean)
+function module.createParams(maxVariables: number, lineDelay: number, enableLogging: boolean, enableDebugLogging: boolean, maxVariableLength, maxVariableNameLength)
 	local params = {}
 	setmetatable(params, parameters)
 	
@@ -405,6 +425,14 @@ function module.createParams(maxVariables: number, lineDelay: number, enableLogg
 	
 	if type(enableDebugLogging) == "boolean" then
 		params.debugLog = enableDebugLogging
+	end
+	
+	if type(maxVariableLength) == "number" then
+		params.maxVariableSize = math.random(maxVariableLength)
+	end
+	
+	if type(maxVariableNameLength) == "number" then
+		params.maxVariableName = math.random(maxVariableNameLength)
 	end
 	
 	return params
