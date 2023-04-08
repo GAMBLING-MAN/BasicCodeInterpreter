@@ -19,3 +19,7 @@ added adjustable delay between executed lines; this required a slight rewrite of
 ### 4/7/23 | 0.1.2:  
 parameter tables now use a metatable with .\_\_index to use default values; debuglogging and logging are now differentiated  
 "Now using a metatable for parameters to simplify adding default values. Debug logging and regular logging are now differentiated."
+
+### 4/8/23 | 0.1.3:  
+Added new parameter values, a max variable name length and a max variable length. Cleaned up a little bit internally.
+"Added new parameter values, a max variable name length and a max variable length. Cleaned up a little bit internally."
