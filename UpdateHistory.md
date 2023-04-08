@@ -17,5 +17,5 @@ added adjustable delay between executed lines; this required a slight rewrite of
 "Revamped code to enable multiple simultaneous executions without interference. Also added the ability to delay between lines of code."
 
 ### 4/7/23 | 0.1.2:  
-parameter tables now use a metatable with .\_\_index to use default values; debuglogging and logging are now differentiated
+parameter tables now use a metatable with .\_\_index to use default values; debuglogging and logging are now differentiated  
 "Now using a metatable for parameters to simplify adding default values. Debug logging and regular logging are now differentiated."
